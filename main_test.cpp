@@ -9,12 +9,12 @@
 #include "videoproc\interpolate.h"
 #include "videoproc\vid.h"
 #include "inputparser.h"
-#include "guicontrols\settings\settingswindow.h"
+//#include "guicontrols\settings\settingswindow.h"
 #include <QDebug>
 #include <QEventLoop>
 
 #define NUM_FRAMES ( 1 )
-#define START_FRAME ( 15 )
+#define START_FRAME ( 0 )
 #define END_FRAME ( 80 )
 
 int main(int argc, char **argv)
@@ -27,7 +27,7 @@ int main(int argc, char **argv)
    int end_frame = END_FRAME;
    int inter_frames = NUM_FRAMES;
    int scale = 100;
-   flow_type flow_option = NO_FLOW;
+   flow_type flow_option = DIS_FLOW;
    const std::string &input_video = input.getCmdOption( "-i" );
    const std::string &output_video = input.getCmdOption( "-o" );
    const std::string &start_frame_arg = input.getCmdOption( "-s" );
@@ -81,6 +81,11 @@ int main(int argc, char **argv)
          flow_option = SIMPLE_FLOW;
          qDebug( ) << "flow_option SIMPLE_FLOW";
       }
+      else if ( flow_arg == "I"  || flow_arg == "s" )
+      {
+         flow_option = DIS_FLOW;
+         qDebug( ) << "flow_option DIS_FLOW";
+      }
       else if ( flow_arg == "D"  || flow_arg == "d" )
       {
          flow_option = DEEP_FLOW;
@@ -89,14 +94,14 @@ int main(int argc, char **argv)
    }
 
 
-   SettingsWindow *settings_window = new SettingsWindow( );
+   /*SettingsWindow *settings_window = new SettingsWindow( );
    QEventLoop loop;
-   connect( settings_window, SIGNAL( settingsSaved( SettingsData * ) ), &loop, SIGNAL( quit( ) ) );
+   QObject::connect( settings_window, SIGNAL( settingsSaved( SettingsData * ) ), &loop, SIGNAL( quit( ) ) );
    settings_window->show( );
    loop.exec( );
-   qDebug( ) << "done";
+   qDebug( ) << "done";*/
 
-#if 0
+#if 1
    Vid video_obj = Vid( QString::fromStdString( input_video ) );
    video_obj.setCurrentFrameIndex( start_frame );
 
@@ -110,34 +115,36 @@ int main(int argc, char **argv)
    cv::VideoWriter out_vid;
    if ( output_video.empty( ) )
    {
-      out_vid.open( "C:/cygwin/home/501219/OCV/out.avi", video_obj.getCodec( ), video_obj.getFPS( ), video_obj.getCSize( ), true );
+      out_vid.open( "out.avi", CV_FOURCC('H', 'F', 'Y', 'U') , (inter_frames + 1) * video_obj.getFPS( ), video_obj.getCSize( ), true );
    }
    else
    {
-      out_vid.open( output_video, video_obj.getCodec( ), video_obj.getFPS( ), video_obj.getCSize( ), true );
+      out_vid.open( output_video, CV_FOURCC('H', 'F', 'Y', 'U'), (inter_frames + 1) * video_obj.getFPS( ), video_obj.getCSize( ), true );
    }
    char output_name[ 50 ];
 
-   for ( int i = start_frame; i < end_frame; i++ )
+   int i = 0;
+   while ( video_obj.getCurrentFrame( from ) && video_obj.getNextFrame( to ) )
    {
-      if ( video_obj.getCurrentFrame( from ) && video_obj.getNextFrame( to ) )
-      {
-         sprintf( output_name, "C:/cygwin/home/501219/OCV/images/frame%d.jpg", i );
-         cv::cvtColor( from, from, CV_RGB2BGR );
-         cv::cvtColor( to, to, CV_RGB2BGR );
-         Interpolater interp( from, to, inter_frames, flow_option );
-         imwrite( output_name, from );
-         out_vid << from;
-         for ( int j=0; j < inter_frames; j++ )
-         {
-            qDebug( ) << "frame " << i << "." << j;
-            interp.getNextFrame( interp_frame );
-            out_vid << interp_frame;
-            sprintf( output_name, "C:/cygwin/home/501219/OCV/images/frame%d.%d.jpg", i, j );
-            imwrite( output_name, interp_frame );
-         }
-      }
-   }
+     sprintf( output_name, "./images/frame%d.jpg", i );
+     cv::cvtColor( from, from, CV_RGB2BGR );
+     cv::cvtColor( to, to, CV_RGB2BGR );
+     Interpolater interp( from, to, inter_frames, flow_option );
+     imwrite( output_name, from );
+     out_vid << from;
+     for ( int j=0; j < inter_frames; j++ )
+     {
+        qDebug( ) << "frame " << i << "." << j;
+        interp.getNextFrame( interp_frame );
+        out_vid << interp_frame;
+        sprintf( output_name, "./images/frame%d.%d.jpg", i, j );
+        qDebug( ) << "wtiting frame: " << output_name << "\n";
+        imwrite( output_name, interp_frame );
+        cv::imshow("output", interp_frame);
+        cv::waitKey(1);
+     }
+     ++i;
+  }
    out_vid << to;
 #endif
    return 0;

@@ -43,5 +43,6 @@ typedef enum
    NO_FLOW,
    SIMPLE_FLOW,
    DEEP_FLOW,
+   DIS_FLOW,
 } flow_type;
 Q_DECLARE_METATYPE( flow_type )

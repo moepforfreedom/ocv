@@ -38,6 +38,13 @@ Interpolater::Interpolater( cv::InputArray from, cv::InputArray to, uint8 N, Set
       dof = cv::optflow::createOptFlow_DeepFlow( );
       dof->calc( from_gray, to_gray, flow );
       break;
+   case DIS_FLOW:
+       cv::cvtColor( this->from, from_gray, cv::COLOR_RGB2GRAY );
+       cv::cvtColor( this->to, to_gray, cv::COLOR_RGB2GRAY );
+       qDebug( ) << "computing DISflow";
+       dof = cv::optflow::createOptFlow_DIS(cv::optflow::DISOpticalFlow::PRESET_MEDIUM);
+       dof->calc( from_gray, to_gray, flow );
+       break;
    case NO_FLOW:
    default:
       // NO_FLOW

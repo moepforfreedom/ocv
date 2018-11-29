@@ -9,4 +9,8 @@
     * S: simple flow
     * D: deep flow, best
     * I: DISFlow, fastest
+ 
+Download:
+
+[v0.1 win64](https://github.com/moepforfreedom/ocv/releases/download/v0.1/release_v0.1_win64.zip)
 
